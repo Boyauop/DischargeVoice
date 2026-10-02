@@ -1,0 +1,141 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole { PATIENT CAREGIVER CLINICIAN PHARMACIST FACILITY_ADMIN ORGANIZATION_ADMIN SYSTEM_ADMIN }
+enum PlanStatus { DRAFT UNDER_REVIEW APPROVED ARCHIVED }
+enum SafetyCategory { SAFE_GROUNDED OUT_OF_SCOPE MEDICATION_CHANGE DIAGNOSIS_REQUEST NEW_TREATMENT_REQUEST EMERGENCY_CONCERN MISSING_INFORMATION UNSAFE_REQUEST }
+enum TeachBackResult { CORRECT INCORRECT NEEDS_REVIEW }
+
+model Organization {
+  id String @id @default(cuid())
+  name String
+  createdAt DateTime @default(now())
+  facilities Facility[]
+  users User[]
+  patients Patient[]
+  plans DischargePlan[]
+}
+
+model Facility {
+  id String @id @default(cuid())
+  organizationId String
+  name String
+  emergencyInstructions String
+  organization Organization @relation(fields: [organizationId], references: [id])
+  users User[]
+  patients Patient[]
+  plans DischargePlan[]
+  @@index([organizationId])
+}
+
+model User {
+  id String @id @default(cuid())
+  organizationId String
+  facilityId String?
+  email String @unique
+  passwordHash String
+  role UserRole
+  isActive Boolean @default(true)
+  createdAt DateTime @default(now())
+  organization Organization @relation(fields: [organizationId], references: [id])
+  facility Facility? @relation(fields: [facilityId], references: [id])
+  patient Patient?
+  auditLogs AuditLog[]
+  approvedPlans DischargePlanVersion[] @relation("approvedBy")
+  createdVersions DischargePlanVersion[] @relation("createdBy")
+  @@index([organizationId, facilityId, role])
+}
+
+model Patient {
+  id String @id @default(cuid())
+  organizationId String
+  facilityId String
+  patientIdentifier String
+  firstName String
+  lastName String
+  dateOfBirth DateTime?
+  preferredLanguage String @default("en")
+  phone String?
+  organization Organization @relation(fields: [organizationId], references: [id])
+  facility Facility @relation(fields: [facilityId], references: [id])
+  user User? @relation(fields: [userId], references: [id])
+  userId String? @unique
+  plans DischargePlan[]
+  caregivers CaregiverAuthorization[]
+  conversations Conversation[]
+  teachBackSessions TeachBackSession[]
+  @@unique([organizationId, patientIdentifier])
+  @@index([facilityId])
+}
+
+model CaregiverAuthorization {
+  id String @id @default(cuid())
+  patientId String
+  caregiverUserId String
+  permissions String[]
+  active Boolean @default(true)
+  createdAt DateTime @default(now())
+  patient Patient @relation(fields: [patientId], references: [id])
+  @@unique([patientId, caregiverUserId])
+}
+
+model DischargePlan {
+  id String @id @default(cuid())
+  organizationId String
+  facilityId String
+  patientId String
+  status PlanStatus @default(DRAFT)
+  dischargeReason String
+  currentVersion Int @default(1)
+  organization Organization @relation(fields: [organizationId], references: [id])
+  facility Facility @relation(fields: [facilityId], references: [id])
+  patient Patient @relation(fields: [patientId], references: [id])
+  versions DischargePlanVersion[]
+  conversations Conversation[]
+  @@index([organizationId, facilityId, status])
+  @@index([patientId, status])
+}
+
+model DischargePlanVersion {
+  id String @id @default(cuid())
+  planId String
+  version Int
+  status PlanStatus
+  changeSummary String?
+  clinicalSummary String?
+  activityRestrictions String?
+  dietInstructions String?
+  facilityContact String?
+  emergencyInstructions String?
+  preferredLanguage String @default("en")
+  createdById String
+  approvedById String?
+  approvedAt DateTime?
+  createdAt DateTime @default(now())
+  plan DischargePlan @relation(fields: [planId], references: [id])
+  createdBy User @relation("createdBy", fields: [createdById], references: [id])
+  approvedBy User? @relation("approvedBy", fields: [approvedById], references: [id])
+  medications Medication[]
+  followUps FollowUp[]
+  warningSigns WarningSign[]
+  homeCareInstructions HomeCareInstruction[]
+  @@unique([planId, version])
+  @@index([planId, status])
+}
+
+model Medication { id String @id @default(cuid()); versionId String; name String; dose String; route String; frequency String; duration String?; instructions String; version DischargePlanVersion @relation(fields: [versionId], references: [id]) }
+model FollowUp { id String @id @default(cuid()); versionId String; service String; date DateTime?; time String?; location String?; instructions String?; version DischargePlanVersion @relation(fields: [versionId], references: [id]) }
+model WarningSign { id String @id @default(cuid()); versionId String; description String; responseInstructions String?; version DischargePlanVersion @relation(fields: [versionId], references: [id]) }
+model HomeCareInstruction { id String @id @default(cuid()); versionId String; instruction String; version DischargePlanVersion @relation(fields: [versionId], references: [id]) }
+
+model Conversation { id String @id @default(cuid()); patientId String; planId String; userId String; createdAt DateTime @default(now()); patient Patient @relation(fields: [patientId], references: [id]); plan DischargePlan @relation(fields: [planId], references: [id]); messages ConversationMessage[] }
+model ConversationMessage { id String @id @default(cuid()); conversationId String; role String; content String; safetyCategory SafetyCategory?; sourceTypes String[]; createdAt DateTime @default(now()); conversation Conversation @relation(fields: [conversationId], references: [id]) }
+model TeachBackSession { id String @id @default(cuid()); patientId String; planVersionId String; topic String; createdAt DateTime @default(now()); patient Patient @relation(fields: [patientId], references: [id]); responses TeachBackResponse[] }
+model TeachBackResponse { id String @id @default(cuid()); sessionId String; question String; patientResponse String; expectedAnswer String; result TeachBackResult; createdAt DateTime @default(now()); session TeachBackSession @relation(fields: [sessionId], references: [id]) }
+model AuditLog { id String @id @default(cuid()); organizationId String; userId String?; event String; resourceType String?; resourceId String?; requestId String?; metadata Json?; createdAt DateTime @default(now()); user User? @relation(fields: [userId], references: [id]); @@index([organizationId, createdAt]); @@index([userId, createdAt]) }

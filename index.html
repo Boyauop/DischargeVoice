@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DischargeVoice | Care transition workspace</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand"><span class="brand-mark">+</span><span>Discharge<span class="brand-light">Voice</span></span></div>
+    <div class="workspace-label">CARE TRANSITIONS</div>
+    <nav>
+      <button class="nav-item active"><span class="nav-icon">▦</span> Overview</button>
+      <button class="nav-item"><span class="nav-icon">◷</span> Today's discharges <b>8</b></button>
+      <button class="nav-item"><span class="nav-icon">⌕</span> Patient plans</button>
+      <button class="nav-item"><span class="nav-icon">✓</span> Follow-up queue <b class="nav-alert">3</b></button>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="team-card"><div class="avatar small">MC</div><div><strong>My care team</strong><span>Ward 4B · Cardiology</span></div><span class="online-dot"></span></div>
+      <button class="nav-item"><span class="nav-icon">⚙</span> Settings</button>
+      <button class="nav-item"><span class="nav-icon">?</span> Help center</button>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar"><div class="crumb">Care transitions <span>/</span> Today's overview</div><div class="top-actions"><button class="icon-button" aria-label="Notifications">♢<i></i></button><div class="avatar">MC</div><span class="profile-name">Maya Chen</span><span class="chevron">⌄</span></div></header>
+    <section class="content-wrap">
+      <div class="page-heading"><div><p class="eyebrow">THURSDAY, OCTOBER 2, 2026</p><h1>Good morning, Maya.</h1><p class="lede">A calm handoff makes recovery safer. Here is your discharge picture at a glance.</p></div><button class="primary-button" id="newPlanBtn"><span>＋</span> New discharge plan</button></div>
+
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-label">DISCHARGES TODAY <span class="info">i</span></div><div class="stat-value">8 <span class="stat-change">↑ 2</span></div><div class="stat-note">vs. last Thursday</div></div>
+        <div class="stat-card"><div class="stat-label">READY TO GO <span class="info">i</span></div><div class="stat-value">5 <span class="stat-change neutral">62.5%</span></div><div class="stat-note">of today's planned discharges</div></div>
+        <div class="stat-card attention"><div class="stat-label">NEEDS ATTENTION <span class="info">i</span></div><div class="stat-value">3 <span class="stat-change warn">●</span></div><div class="stat-note">follow-up actions due</div></div>
+        <div class="stat-card"><div class="stat-label">TEACH-BACK SCORE <span class="info">i</span></div><div class="stat-value">91<span class="percent">%</span> <span class="stat-change">↑ 4%</span></div><div class="stat-note">this week</div></div>
+      </div>
+
+      <div class="section-heading"><div><h2>Today's discharge plans</h2><p>Monitor readiness and help each patient leave with confidence.</p></div><div class="view-controls"><button class="filter-button" id="filterBtn">All patients <span>⌄</span></button><button class="icon-button bordered" aria-label="More options">•••</button></div></div>
+      <div class="table-card"><div class="table-head"><span>PATIENT</span><span>DISCHARGE WINDOW</span><span>PLAN STATUS</span><span>TEACH-BACK</span><span></span></div><div id="patientRows"></div></div>
+
+      <div class="lower-grid"><section class="activity-panel"><div class="section-heading compact"><div><h2>Recent activity</h2><p>What has changed across your plans.</p></div><button class="text-button">View all <span>→</span></button></div><div class="activity-list"><div class="activity"><span class="activity-icon blue">✓</span><div><strong>Teach-back completed</strong><p>Elena Morales understood all 4 medication changes.</p></div><time>8 min ago</time></div><div class="activity"><span class="activity-icon amber">!</span><div><strong>Follow-up needs scheduling</strong><p>James Okafor · Cardiology appointment</p></div><time>24 min ago</time></div><div class="activity"><span class="activity-icon green">↗</span><div><strong>Plan shared with caregiver</strong><p>Samir Patel · Amina Patel</p></div><time>1 hr ago</time></div></div></section><section class="insight-panel"><div class="insight-top"><span class="sparkle">✦</span><div><p class="eyebrow">THIS WEEK'S INSIGHT</p><h2>Medication questions peak at home.</h2></div></div><p>Patients asked 38% more medication questions after 6pm. DischargeVoice keeps the care plan available when your team is not.</p><button class="text-button">Explore the pattern <span>→</span></button></section></div>
+    </section>
+  </main>
+  <div class="toast" id="toast">New discharge plan started</div>
+  <script src="app.js"></script>
+</body>
+</html>
