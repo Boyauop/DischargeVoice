@@ -7,10 +7,39 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum UserRole { PATIENT CAREGIVER CLINICIAN PHARMACIST FACILITY_ADMIN ORGANIZATION_ADMIN SYSTEM_ADMIN }
-enum PlanStatus { DRAFT UNDER_REVIEW APPROVED ARCHIVED }
-enum SafetyCategory { SAFE_GROUNDED OUT_OF_SCOPE MEDICATION_CHANGE DIAGNOSIS_REQUEST NEW_TREATMENT_REQUEST EMERGENCY_CONCERN MISSING_INFORMATION UNSAFE_REQUEST }
-enum TeachBackResult { CORRECT INCORRECT NEEDS_REVIEW }
+enum UserRole {
+  PATIENT
+  CAREGIVER
+  CLINICIAN
+  PHARMACIST
+  FACILITY_ADMIN
+  ORGANIZATION_ADMIN
+  SYSTEM_ADMIN
+}
+
+enum PlanStatus {
+  DRAFT
+  UNDER_REVIEW
+  APPROVED
+  ARCHIVED
+}
+
+enum SafetyCategory {
+  SAFE_GROUNDED
+  OUT_OF_SCOPE
+  MEDICATION_CHANGE
+  DIAGNOSIS_REQUEST
+  NEW_TREATMENT_REQUEST
+  EMERGENCY_CONCERN
+  MISSING_INFORMATION
+  UNSAFE_REQUEST
+}
+
+enum TeachBackResult {
+  CORRECT
+  INCORRECT
+  NEEDS_REVIEW
+}
 
 model Organization {
   id String @id @default(cuid())
@@ -129,13 +158,98 @@ model DischargePlanVersion {
   @@index([planId, status])
 }
 
-model Medication { id String @id @default(cuid()); versionId String; name String; dose String; route String; frequency String; duration String?; instructions String; version DischargePlanVersion @relation(fields: [versionId], references: [id]) }
-model FollowUp { id String @id @default(cuid()); versionId String; service String; date DateTime?; time String?; location String?; instructions String?; version DischargePlanVersion @relation(fields: [versionId], references: [id]) }
-model WarningSign { id String @id @default(cuid()); versionId String; description String; responseInstructions String?; version DischargePlanVersion @relation(fields: [versionId], references: [id]) }
-model HomeCareInstruction { id String @id @default(cuid()); versionId String; instruction String; version DischargePlanVersion @relation(fields: [versionId], references: [id]) }
+model Medication {
+  id String @id @default(cuid())
+  versionId String
+  name String
+  dose String
+  route String
+  frequency String
+  duration String?
+  instructions String
+  version DischargePlanVersion @relation(fields: [versionId], references: [id])
+}
 
-model Conversation { id String @id @default(cuid()); patientId String; planId String; userId String; createdAt DateTime @default(now()); patient Patient @relation(fields: [patientId], references: [id]); plan DischargePlan @relation(fields: [planId], references: [id]); messages ConversationMessage[] }
-model ConversationMessage { id String @id @default(cuid()); conversationId String; role String; content String; safetyCategory SafetyCategory?; sourceTypes String[]; createdAt DateTime @default(now()); conversation Conversation @relation(fields: [conversationId], references: [id]) }
-model TeachBackSession { id String @id @default(cuid()); patientId String; planVersionId String; topic String; createdAt DateTime @default(now()); patient Patient @relation(fields: [patientId], references: [id]); responses TeachBackResponse[] }
-model TeachBackResponse { id String @id @default(cuid()); sessionId String; question String; patientResponse String; expectedAnswer String; result TeachBackResult; createdAt DateTime @default(now()); session TeachBackSession @relation(fields: [sessionId], references: [id]) }
-model AuditLog { id String @id @default(cuid()); organizationId String; userId String?; event String; resourceType String?; resourceId String?; requestId String?; metadata Json?; createdAt DateTime @default(now()); user User? @relation(fields: [userId], references: [id]); @@index([organizationId, createdAt]); @@index([userId, createdAt]) }
+model FollowUp {
+  id String @id @default(cuid())
+  versionId String
+  service String
+  date DateTime?
+  time String?
+  location String?
+  instructions String?
+  version DischargePlanVersion @relation(fields: [versionId], references: [id])
+}
+
+model WarningSign {
+  id String @id @default(cuid())
+  versionId String
+  description String
+  responseInstructions String?
+  version DischargePlanVersion @relation(fields: [versionId], references: [id])
+}
+
+model HomeCareInstruction {
+  id String @id @default(cuid())
+  versionId String
+  instruction String
+  version DischargePlanVersion @relation(fields: [versionId], references: [id])
+}
+
+model Conversation {
+  id String @id @default(cuid())
+  patientId String
+  planId String
+  userId String
+  createdAt DateTime @default(now())
+  patient Patient @relation(fields: [patientId], references: [id])
+  plan DischargePlan @relation(fields: [planId], references: [id])
+  messages ConversationMessage[]
+}
+
+model ConversationMessage {
+  id String @id @default(cuid())
+  conversationId String
+  role String
+  content String
+  safetyCategory SafetyCategory?
+  sourceTypes String[]
+  createdAt DateTime @default(now())
+  conversation Conversation @relation(fields: [conversationId], references: [id])
+}
+
+model TeachBackSession {
+  id String @id @default(cuid())
+  patientId String
+  planVersionId String
+  topic String
+  createdAt DateTime @default(now())
+  patient Patient @relation(fields: [patientId], references: [id])
+  responses TeachBackResponse[]
+}
+
+model TeachBackResponse {
+  id String @id @default(cuid())
+  sessionId String
+  question String
+  patientResponse String
+  expectedAnswer String
+  result TeachBackResult
+  createdAt DateTime @default(now())
+  session TeachBackSession @relation(fields: [sessionId], references: [id])
+}
+
+model AuditLog {
+  id String @id @default(cuid())
+  organizationId String
+  userId String?
+  event String
+  resourceType String?
+  resourceId String?
+  requestId String?
+  metadata Json?
+  createdAt DateTime @default(now())
+  user User? @relation(fields: [userId], references: [id])
+  @@index([organizationId, createdAt])
+  @@index([userId, createdAt])
+}

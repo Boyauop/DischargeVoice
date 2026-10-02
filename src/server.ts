@@ -4,7 +4,6 @@ import express, { type NextFunction, type Request, type Response } from 'express
 import cors from 'cors';
 import helmet from 'helmet';
 import pino from 'pino';
-import pinoHttp from 'pino-http';
 import { z } from 'zod';
 import type { AuthContext, UserRole } from './domain.js';
 import { assertPatientAccess, assertRole, AuthorizationError } from './authorization.js';
@@ -22,7 +21,7 @@ const port = Number(process.env.PORT ?? 4000);
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors({ origin: process.env.CORS_ORIGIN ?? 'http://localhost:5173', credentials: true }));
 app.use(express.json({ limit: '64kb' }));
-app.use(pinoHttp({ logger, genReqId: () => crypto.randomUUID() }));
+app.use((request, _response, next) => { request.headers['x-request-id'] ??= crypto.randomUUID(); next(); });
 
 function authFromRequest(request: Request): AuthContext {
   const token = request.header('authorization')?.replace(/^Bearer\s+/i, '');
@@ -33,7 +32,7 @@ function authFromRequest(request: Request): AuthContext {
     : { userId: 'user-demo-clinician', organizationId: demoPatient.organizationId, facilityId: demoPatient.facilityId, role: 'CLINICIAN' };
 }
 
-function protectedRoute(handler: (request: Request, response: Response, auth: AuthContext) => Promise<void>) {
+function protectedRoute(handler: (request: Request, response: Response, auth: AuthContext) => Promise<unknown>) {
   return async (request: Request, response: Response, next: NextFunction) => { try { await handler(request, response, authFromRequest(request)); } catch (error) { next(error); } };
 }
 
