@@ -1,6 +1,7 @@
 import type { AuthContext, DischargeContext } from './domain.js';
 import { assertPatientAccess, AuthorizationError } from './authorization.js';
 import { demoPatient, demoPlan } from './demo-data.js';
+import { getPlanForPatient } from './store.js';
 
 export type McpTool = 'get_discharge_plan' | 'get_medications' | 'get_medication' | 'get_follow_up' | 'get_warning_signs' | 'get_home_care' | 'get_activity_restrictions' | 'get_diet_instructions' | 'get_facility_contact' | 'get_emergency_instructions';
 
@@ -8,7 +9,8 @@ export class McpServer {
   async call(tool: McpTool, auth: AuthContext, patientId: string, args: Record<string, string> = {}): Promise<unknown> {
     assertPatientAccess(auth, patientId);
     if (patientId !== demoPatient.id || auth.organizationId !== demoPatient.organizationId) throw new AuthorizationError();
-    const plan = demoPlan;
+    const plan = getPlanForPatient(patientId) ?? (patientId === demoPatient.id ? demoPlan : undefined);
+    if (!plan || plan.status !== 'APPROVED') throw new AuthorizationError('Only an approved discharge plan can be accessed.');
     switch (tool) {
       case 'get_discharge_plan': return plan;
       case 'get_medications': return { patientId, planVersion: plan.planVersion, medications: plan.medications };
